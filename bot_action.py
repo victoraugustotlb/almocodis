@@ -23,11 +23,10 @@ async def send_menu():
         print(f'Bot conectado como {client.user.name} para postagem única.')
         
         # Verifica se hoje é dia de semana (segunda a sexta = 0 a 4)
-        # COMENTADO PARA TESTES NO FINAL DE SEMANA
-        # if datetime.now().weekday() > 4:
-        #     print("Hoje é final de semana. Abortando postagem.")
-        #     await client.close()
-        #     return
+        if datetime.now().weekday() > 4:
+            print("Hoje é final de semana. Abortando postagem.")
+            await client.close()
+            return
 
         try:
             channel = client.get_channel(int(CHANNEL_ID))

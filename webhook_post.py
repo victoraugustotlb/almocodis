@@ -14,10 +14,9 @@ def send_webhook_menu():
         return
 
     # Verifica se hoje é dia de semana (segunda a sexta = 0 a 4)
-    # COMENTADO PARA TESTES NO FINAL DE SEMANA
-    # if datetime.now().weekday() > 4:
-    #     print("Hoje é final de semana. Nenhuma mensagem será enviada.")
-    #     return
+    if datetime.now().weekday() > 4:
+        print("Hoje é final de semana. Nenhuma mensagem será enviada.")
+        return
 
     print("Buscando cardápio...")
     menu = scraper.get_menu()
