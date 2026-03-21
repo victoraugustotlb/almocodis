@@ -33,7 +33,7 @@ async def on_ready():
     except Exception as e:
         print(e)
 
-@bot.hybrid_command(name="almoco", description="Mostra o cardápio do RU de hoje")
+@bot.hybrid_command(name="almoco", description="Mostra o cardápio de hoje")
 async def almoco(ctx):
     await ctx.defer()
     menu = scraper.get_menu()
@@ -77,7 +77,7 @@ async def daily_menu_post():
         if channel:
             menu = scraper.get_menu()
             embed = discord.Embed(
-                title=f"📢 Bom dia! Cardápio do RU - {datetime.now().strftime('%d/%m/%Y')}",
+                title=f"📢 Bom dia! Almoço de hoje: - {datetime.now().strftime('%d/%m/%Y')}",
                 description=menu,
                 color=discord.Color.green()
             )
