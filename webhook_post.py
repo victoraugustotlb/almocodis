@@ -1,7 +1,8 @@
 import os
 import requests
+import pytz  # Adicione esta importação
 from dotenv import load_dotenv
-from datetime import datetime, timedelta  # Adicionado timedelta
+from datetime import datetime, timedelta
 import scraper
 
 # Carrega as variáveis de ambiente
@@ -9,46 +10,48 @@ load_dotenv()
 WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
 
 def send_webhook_menu():
-    if not WEBHOOK_URL or WEBHOOK_URL == "COLOQUE_SUA_WEBHOOK_AQUI":
-        print("Erro: DISCORD_WEBHOOK_URL não configurada no .env")
+    if not WEBHOOK_URL or "discord.com/api/webhooks" not in WEBHOOK_URL:
+        print("Erro: DISCORD_WEBHOOK_URL inválida.")
         return
 
-    # --- ALTERAÇÃO 1: Definir a data como AMANHÃ ---
-    amanha = datetime.now() + timedelta(days=1)
-
-    # --- ALTERAÇÃO 2: Verificar se AMANHÃ é dia de semana ---
-    # Se amanhã for Sábado (5) ou Domingo (6), não envia.
+    # --- CORREÇÃO DE FUSO HORÁRIO ---
+    fuso_br = pytz.timezone('America/Sao_Paulo')
+    agora_br = datetime.now(fuso_br)
+    
+    # Agora, amanhã será SEMPRE o dia seguinte ao de Brasília
+    amanha = agora_br + timedelta(days=1)
+    
+    # Se amanhã for fim de semana, interrompe
     if amanha.weekday() > 4:
-        print(f"Amanhã ({amanha.strftime('%d/%m')}) é final de semana. Pulando...")
+        print(f"Amanhã ({amanha.strftime('%d/%m')}) é fim de semana. Pulando...")
         return
 
-    print(f"Buscando cardápio para amanhã ({amanha.strftime('%d/%m/%Y')})...")
+    dia_alvo = amanha.strftime("%d")
+    data_formatada = amanha.strftime("%d/%m/%Y")
+
+    print(f"Buscando cardápio para o dia {dia_alvo} (Horário de Brasília: {agora_br.strftime('%H:%M')})...")
     
-    # IMPORTANTE: Se o seu 'scraper.get_menu()' aceitar uma data como parâmetro, 
-    # você deve passá-la aqui. Ex: menu = scraper.get_menu(amanha)
-    menu = scraper.get_menu() 
+    menu = scraper.get_menu(day_to_search=dia_alvo)
     
-    # Prepara o payload do webhook (Embed)
-    data = {
+    payload = {
         "embeds": [
             {
-                # --- ALTERAÇÃO 3: Título atualizado para "Amanhã" ---
-                "title": f"🍴 Cardápio de Amanhã - {amanha.strftime('%d/%m/%Y')}",
+                "title": f"🍴 Cardápio de Amanhã - {data_formatada}",
                 "description": menu,
-                "color": 3066993, # Verde
+                "color": 3066993,
                 "footer": {
-                    "text": "Postado automaticamente via GitHub Actions (Webhook)"
+                    "text": "Libriverse Bot • GitHub Actions"
                 }
             }
         ]
     }
 
     try:
-        response = requests.post(WEBHOOK_URL, json=data)
+        response = requests.post(WEBHOOK_URL, json=payload)
         response.raise_for_status()
-        print("Cardápio de amanhã enviado com sucesso!")
+        print(f"Sucesso! Cardápio de {data_formatada} enviado.")
     except Exception as e:
-        print(f"Erro ao enviar webhook: {e}")
+        print(f"Erro: {e}")
 
 if __name__ == "__main__":
     send_webhook_menu()
