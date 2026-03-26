@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta  # Adicionado timedelta
 import scraper
 
 # Carrega as variáveis de ambiente
@@ -13,19 +13,27 @@ def send_webhook_menu():
         print("Erro: DISCORD_WEBHOOK_URL não configurada no .env")
         return
 
-    # Verifica se hoje é dia de semana (segunda a sexta = 0 a 4)
-    if datetime.now().weekday() > 4:
-        print("Hoje é final de semana. Nenhuma mensagem será enviada.")
+    # --- ALTERAÇÃO 1: Definir a data como AMANHÃ ---
+    amanha = datetime.now() + timedelta(days=1)
+
+    # --- ALTERAÇÃO 2: Verificar se AMANHÃ é dia de semana ---
+    # Se amanhã for Sábado (5) ou Domingo (6), não envia.
+    if amanha.weekday() > 4:
+        print(f"Amanhã ({amanha.strftime('%d/%m')}) é final de semana. Pulando...")
         return
 
-    print("Buscando cardápio...")
-    menu = scraper.get_menu()
+    print(f"Buscando cardápio para amanhã ({amanha.strftime('%d/%m/%Y')})...")
+    
+    # IMPORTANTE: Se o seu 'scraper.get_menu()' aceitar uma data como parâmetro, 
+    # você deve passá-la aqui. Ex: menu = scraper.get_menu(amanha)
+    menu = scraper.get_menu() 
     
     # Prepara o payload do webhook (Embed)
     data = {
         "embeds": [
             {
-                "title": f"🍴 Cardápio de Hoje - {datetime.now().strftime('%d/%m/%Y')}",
+                # --- ALTERAÇÃO 3: Título atualizado para "Amanhã" ---
+                "title": f"🍴 Cardápio de Amanhã - {amanha.strftime('%d/%m/%Y')}",
                 "description": menu,
                 "color": 3066993, # Verde
                 "footer": {
@@ -38,7 +46,7 @@ def send_webhook_menu():
     try:
         response = requests.post(WEBHOOK_URL, json=data)
         response.raise_for_status()
-        print("Cardápio enviado com sucesso via Webhook!")
+        print("Cardápio de amanhã enviado com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar webhook: {e}")
 
